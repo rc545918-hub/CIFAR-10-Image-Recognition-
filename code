@@ -1,0 +1,221 @@
+
+# ==========================================
+# CIFAR-10 IMAGE RECOGNITION PROJECT
+# Using Convolutional Neural Network (CNN)
+# ==========================================
+
+# 1. Import Libraries
+
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+
+from tensorflow.keras import datasets, layers, models
+
+print("Libraries imported successfully!")
+
+
+# 2. Load CIFAR-10 Dataset
+
+(x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data()
+
+print("Training Data Shape:", x_train.shape)
+print("Testing Data Shape:", x_test.shape)
+
+
+# 3. Define Image Classes
+
+class_names = [
+    'Airplane',
+    'Automobile',
+    'Bird',
+    'Cat',
+    'Deer',
+    'Dog',
+    'Frog',
+    'Horse',
+    'Ship',
+    'Truck'
+]
+
+
+# 4. Display Sample Images
+
+plt.figure(figsize=(10, 6))
+
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_train[i])
+    plt.title(class_names[y_train[i][0]])
+    plt.axis('off')
+
+plt.suptitle("CIFAR-10 Sample Images")
+plt.show()
+
+
+# 5. Normalize Image Data
+
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+print("Image normalization completed!")
+
+
+# 6. Build CNN Model
+
+model = models.Sequential([
+
+    layers.Input(shape=(32, 32, 3)),
+
+    layers.Conv2D(32, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+
+    layers.Conv2D(64, (3, 3), activation='relu'),
+
+    layers.Flatten(),
+
+    layers.Dense(64, activation='relu'),
+
+    layers.Dense(10, activation='softmax')
+
+])
+
+print("\nCNN Model Summary:")
+model.summary()
+
+
+# 7. Compile Model
+
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+print("Model compiled successfully!")
+
+
+# 8. Train Model
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=10,
+    batch_size=64,
+    validation_data=(x_test, y_test)
+)
+
+
+# 9. Evaluate Model
+
+test_loss, test_accuracy = model.evaluate(
+    x_test, y_test, verbose=2
+)
+
+print("\nModel Evaluation")
+print("Test Loss:", test_loss)
+print("Test Accuracy:", test_accuracy * 100, "%")
+
+
+# 10. Plot Training Accuracy
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(history.history['accuracy'],
+         label='Training Accuracy')
+
+plt.plot(history.history['val_accuracy'],
+         label='Validation Accuracy')
+
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# 11. Plot Training Loss
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(history.history['loss'],
+         label='Training Loss')
+
+plt.plot(history.history['val_loss'],
+         label='Validation Loss')
+
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# 12. Predict Test Images
+
+predictions = model.predict(x_test[:10])
+
+plt.figure(figsize=(12, 8))
+
+for i in range(10):
+
+    predicted_class = np.argmax(predictions[i])
+    actual_class = y_test[i][0]
+
+    plt.subplot(2, 5, i + 1)
+
+    plt.imshow(x_test[i])
+
+    plt.title(
+        "Predicted: " + class_names[predicted_class]
+        + "\nActual: " + class_names[actual_class]
+    )
+
+    plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+
+
+# 13. Predict Single Image
+
+index = 100
+
+image = x_test[index]
+
+prediction = model.predict(
+    np.expand_dims(image, axis=0),
+    verbose=0
+)
+
+predicted_class = np.argmax(prediction)
+
+print("\nSingle Image Prediction")
+print("Predicted Class:",
+      class_names[predicted_class])
+
+print("Actual Class:",
+      class_names[y_test[index][0]])
+
+
+# 14. Save Trained Model
+
+model.save("cifar10_image_recognition.keras")
+
+print("\nModel saved successfully!")
+
+
+# 15. Final Result
+
+print("\n================================")
+print("CIFAR-10 IMAGE RECOGNITION")
+print("PROJECT COMPLETED SUCCESSFULLY")
+print("================================")
+
+print("Final Test Accuracy:",
+      round(test_accuracy * 100, 2), "%")
